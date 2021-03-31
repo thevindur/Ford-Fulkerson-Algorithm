@@ -4,60 +4,33 @@ import java.util.ArrayList;
 import java.util.List;
 
 public abstract class NetworkFlow {
+    final int numberOfNodes, sourceNode, targetNode;
+    static final long infinity = Long.MAX_VALUE / 2;    // To avoid overflow, set infinity to a value less than Long.MAX_VALUE;
 
-    // To avoid overflow, set infinity to a value less than Long.MAX_VALUE;
-    static final long INF = Long.MAX_VALUE / 2;
-
-    // Inputs: n = number of nodes, s = source, t = sink
-    final int n, s, t;
-
-    // 'visited' and 'visitedToken' are variables used in graph sub-routines to
-    // track whether a node has been visited or not. In particular, node 'i' was
-    // recently visited if visited[i] == visitedToken is true. This is handy
-    // because to mark all nodes as unvisited simply increment the visitedToken.
+    // These variables are used in graph sub-routines to track whether a node has been visited or not.
     protected int visitedToken = 1;
     protected int[] visited;
 
-    // Indicates whether the network flow algorithm has ran. The solver only
-    // needs to run once because it always yields the same result.
     protected boolean solved;
-
-    // The maximum flow. Calculated by calling the {@link #solve} method.
     protected long maxFlow;
+    protected List<Edge>[] graph;   // The adjacency list representing the flow graph.
 
-    // The adjacency list representing the flow graph.
-    protected List<Edge>[] graph;
-
-    /**
-     * Creates an instance of a flow network solver. Use the {@link #addEdge} method to add edges to
-     * the graph.
-     *
-     * @param n - The number of nodes in the graph including s and t.
-     * @param s - The index of the source node, 0 <= s < n
-     * @param t - The index of the sink node, 0 <= t < n and t != s
-     */
-    public NetworkFlow(int n, int s, int t) {
-        this.n = n;
-        this.s = s;
-        this.t = t;
+    public NetworkFlow(int numberOfNodes, int sourceNode, int targetNode) {
+        this.numberOfNodes = numberOfNodes;
+        this.sourceNode = sourceNode;
+        this.targetNode = targetNode;
         initializeEmptyFlowGraph();
-        visited = new int[n];
+        visited = new int[numberOfNodes];
     }
 
-    // Constructs an empty graph with n nodes including s and t.
+    // Constructs an empty graph with number of nodes including source node and target node.
     @SuppressWarnings("unchecked")
     private void initializeEmptyFlowGraph() {
-        graph = new List[n];
-        for (int i = 0; i < n; i++) graph[i] = new ArrayList<Edge>();
+        graph = new List[numberOfNodes];
+        for (int i = 0; i < numberOfNodes; i++) graph[i] = new ArrayList<>();
     }
 
-    /**
-     * Adds a directed edge (and its residual edge) to the flow graph.
-     *
-     * @param from - The index of the node the directed edge starts at.
-     * @param to - The index of the node the directed edge ends at.
-     * @param capacity - The capacity of the edge
-     */
+    //Adding an edge to the graph.
     public void addEdge(int from, int to, long capacity) {
         if (capacity <= 0) throw new IllegalArgumentException("Forward edge capacity <= 0");
         Edge e1 = new Edge(from, to, capacity);
@@ -68,23 +41,18 @@ public abstract class NetworkFlow {
         graph[to].add(e2);
     }
 
-    /**
-     * Returns the residual graph after the solver has been executed. This allows you to inspect the
-     * {@link Edge#flow} and {@link Edge#capacity} values of each edge. This is useful if you are
-     * debugging or want to figure out which edges were used during the max flow.
-     */
     public List<Edge>[] getGraph() {
         execute();
         return graph;
     }
 
-    // Returns the maximum flow from the source to the sink.
+    // Returns the maximum flow from the source node to the target node.
     public long getMaxFlow() {
         execute();
         return maxFlow;
     }
 
-    // Wrapper method that ensures we only call solve() once
+    // This ensures that solve() is only called once because it yields the same answer everytime.
     private void execute() {
         if (solved) return;
         solved = true;

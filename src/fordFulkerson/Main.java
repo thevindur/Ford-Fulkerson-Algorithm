@@ -72,8 +72,8 @@ public class Main {
                 int nodes = 0;
                 if (fileSc != null) nodes = fileSc.nextInt();
                 System.out.println("\nNumber of Nodes : " + nodes + "\n");
-                int sourceNode = 0; //Source node of the graph.
-                int targetNode = nodes - 1; //Target node of the graph
+                int sourceNode = 0;     //Source node of the graph.
+                int targetNode = nodes - 1;     //Target node of the graph
 
                 FordFulkerson solver = new FordFulkerson(nodes, sourceNode, targetNode);
 
